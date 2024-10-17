@@ -267,7 +267,9 @@ def main():
       characters[1].max_acceleration = 2
       characters[1].path_to_follow = 1
       characters[1].path_offset = 0.04
-
+      
+      X = (0,-20,20,-40,40,-60,60,0)
+      Y = (90,65,40,15,-10,-35,-60,-85)
 
       time_step_length = 50
       for time_step in range(time_step_length):
