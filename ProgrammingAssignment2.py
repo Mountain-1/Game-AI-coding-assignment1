@@ -3,10 +3,11 @@ import math
 from enum import Enum
 
 class MoveType(Enum):
-      Continue = 1
+      Continue = 0
       Seek = 6
       Flee = 7
       Arrive = 8
+      Follow = 1
 
 # Global Movement Constants
 time = 0
@@ -16,6 +17,18 @@ targetRadius = 5.0 # arrival radius
 #slowRadius = 1.0 # slowing-down radius
 timeToTarget = 0.1 
 
+class Path(object):
+      def _init_(self):
+            self.x = np.array([])
+            self.y = np.array([])
+            self.params = np.array([])
+            self.distance = np.array([])
+            self.segments = 0
+      def pathAssemble(self,ID, X,Y):
+
+      def getParam(self, position):
+
+      def getPosition(self,param):
 
 class SteeringOutput(object):
       def _init_(self):
@@ -40,8 +53,8 @@ class Character(object):
             self.slowing_radius = 0.0
             self.time_to_target = 0.0
             self.colcollide = False
-            #self.pathToFollow = 0
-            #self.pathOffset = 0.0
+            self.path_to_follow = 0
+            self.pat_offset = 0.0
 
 def logRecord(characters, time_step):
       path = "data.txt"
@@ -236,47 +249,25 @@ def movementUpdate(steering: SteeringOutput, time: float, character: Character )
       return
 
 def main():
-      numOfCharacters = 4
+      numOfCharacters = 2
       characters = []
       for i in range(numOfCharacters):
             characters.append(Character())
 
-      # Initialize Character 1
+      # Initialize Character 1 CONTINUE
       characters[0].id = 2601
       characters[0].steer = 1
 
-      # Initialize Character 2
-      characters[1].id = 2602
-      characters[1].steer = 7
-      np.put(characters[1].position,[0,1],[-30.0, -50.0])
-      np.put(characters[1].velocity,[0,1],[2.0,7.0])
-      characters[1].orientation = math.pi/4
-      characters[1].max_velocity = 8
-      characters[1].max_acceleration = 1.5
-      characters[1].target = characters[0]
+      # Initialize Character 2 FOLLOW
+      characters[1].id = 2701
+      characters[1].steer = 1
+      np.put(characters[1].position,[0,1],[20.0, 95])
+      np.put(characters[1].velocity,[0,1],[0,0])
+      characters[1].max_velocity = 4
+      characters[1].max_acceleration = 2
+      characters[1].path_to_follow = 1
+      characters[1].path_offset = 0.04
 
-      # Initialize Character 3
-      characters[2].id = 2603
-      characters[2].steer = 6
-      np.put(characters[2].position,[0,1],[-50.0, 40.0])
-      np.put(characters[2].velocity,[0,1],[0.0, 8.0])
-      characters[2].orientation = (3 * math.pi)/2
-      characters[2].max_velocity = 8
-      characters[2].max_acceleration = 2
-      characters[2].target = characters[0]
-      
-      # Initialize Character 4
-      characters[3].id = 2604
-      characters[3].steer = 8
-      np.put(characters[3].position,[0,1],[50.0, 75.0])
-      np.put(characters[3].velocity,[0,1],[-9.0, 4.0])
-      characters[3].orientation = math.pi
-      characters[3].max_velocity = 10
-      characters[3].max_acceleration = 2
-      characters[3].target = characters[0]
-      characters[3].arrival_radius = 4
-      characters[3].slowing_radius = 32
-      characters[3].time_to_target = 1
 
       time_step_length = 50
       for time_step in range(time_step_length):
