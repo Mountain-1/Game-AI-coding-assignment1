@@ -23,12 +23,43 @@ class Path(object):
             self.y = np.array([])
             self.params = np.array([])
             self.distance = np.array([])
+            self.total_distance = 0
             self.segments = 0
       def pathAssemble(self,ID, X,Y):
+            
+            for item in X:
+                  self.x.append(item) # check if this works for numpy arrays
+                  
+            for item in Y:
+                  self.y.append(item)
+
+            self.segments = len(X) - 1 # Generates total num of segments
+            
+            # Create distance for each lines segment and store it in segments array
+            for i in range(self.segments - 1):
+                  # x_1, x_2, y_1, y_2 for distance formula
+                  a = (self.x[i], self.x[i + 1])
+                  b = (self.y[i], self.y[i + 1])
+                  self.distance.append(distanceBetweenPoints(a, b))
+                  
+            for distance in self.distance:
+                  self.total_distance += distance
+
+            for i in range(self.segments - 1):
+                  self.params.append(self.distance[i]/self.total_distance)
+
 
       def getParam(self, position):
+            # position is a nd array like [x,y]
+            # a is passed in as 
+            for vertex in range(self.segments): # + 1 because we have 1 more vertex than segments
+                  segment_vertex1 = np.array([self.x[vertex], self.y[vertex]])
+                  segment_vertex2 = np.array([self.x[vertex+1], self.y[vertex]+1])
+                  np.linalg.norm(segment_vertex1,segment_vertex2)
+            pass
 
       def getPosition(self,param):
+            pass
 
 class SteeringOutput(object):
       def _init_(self):
@@ -79,6 +110,24 @@ def normalize(vector):
             return vector
       return vector / norm
 
+def distanceBetweenPoints(a, b):
+      return math.sqrt((a[1] - a[0])^2 + (b[1] - b[0])^2)
+      
+
+def closestPointSegment(q, a, b):
+      # Makes sure all these operations work with numpy arrays
+      caseVal = ((q - a)*(b - a)) / (b - a) * (b - a)
+
+      if caseVal <= 0:
+            return a
+      elif caseVal >= 1:
+            return b
+      else:
+            return a + caseVal(b - a)
+
+
+      pass
+
 def getSteeringSeek(Character, Target):
       # Create output structure
       result = SteeringOutput()
@@ -94,113 +143,6 @@ def getSteeringSeek(Character, Target):
 
       result.linear = Target.position - Character.position
 
-def getSteeringFlee(Character, Target):
-      # Create output structur
-      result = SteeringOutput()
-      #Get the direction to the target
-      result.linear = Character.position - Target.position
-      #result.linear = np.subtract(Character.position, Target.position)
-      # Accelerate at maximum rate
-      result.linear = normalize(result.linear)
-      result.linear *= Character.max_acceleration
-      # Output steering
-      result.angular = 0
-      return result
-      #result.angular = 0
-      return result
-      
-      
-
-def getSteeringArrive(Character, Target):
-
-      #if Character.position[0] == Target.position[0] and Character.position[1] == Target.position[1]:
-      #      Character.colcollide = True
-      
-      #if Character.colcollide:
-      #      return -Character.velocity
-
-      result = SteeringOutput()
-                  # Get the direction and distance to the target
-      direction = np.subtract(Target.position, Character.position) ## Check if these need to be switched later
-      distance = np.linalg.norm(direction) # Magnitude
-                  # Test for arrival
-      if distance < Character.arrival_radius:
-            #result.linear = 0
-            #result.angular
-            return result
-                   # Outside slowing-down (outer) radius, move at max speed
-      if distance > Character.slowing_radius: ### Not sure if this needs to be target or character slow radius
-            targetSpeed = Character.max_velocity
-      # Between radii, scale speed to slow down
-      else:
-            targetSpeed = Character.max_velocity * distance / Character.slowing_radius
-                  # Target velocity combines speed and direction
-      targetVelocity = direction
-      targetVelocity = normalize(targetVelocity)
-      targetVelocity *= targetSpeed
-                  # Accelerate to target velocity
-      result.linear = np.subtract(targetVelocity, Character.velocity)
-      result.linear /= Character.time_to_target
-                  # Test for too fast acceleratio
-      if np.linalg.norm(result.linear) > Character.max_acceleration:
-            result.linear = normalize(result.linear)
-            result.linear *= Character.max_acceleration
-
-      # Change might be wrong so commenting this out
-      # if result.linear.length() > maxAcceleration:
-      #      result.linear = normalize(result.linear)
-      #      result.linear *= maxAcceleration
-
-      # Output steering
-      #result.angular = 0
-      return result
-
-"""
-def getSteeringArrive(Character, Target):
-      result = SteeringOutput()
-                  # Get the direction and distance to the target
-      direction = np.subtract(Target.position, Character.position) ## Check if these need to be switched later
-      distance = np.linalg.norm(direction) # Magnitude
-                  # Test for arrival
-      if distance < targetRadius:
-            return None
-                   # Outside slowing-down (outer) radius, move at max speed
-      if distance > Target.slowing_radius: ### Not sure if this needs to be target or character slow radius
-            targetSpeed = maxSpeed
-      # Between radii, scale speed to slow down
-      else:
-            targetSpeed = maxSpeed * distance / Target.slowing_radius
-                  # Target velocity combines speed and direction
-      targetVelocity = direction
-      targetVelocity = normalize(targetVelocity)
-      targetVelocity *= targetSpeed
-                  # Accelerate to target velocity
-      result.linear = np.subtract(targetVelocity, Character.velocity)
-      result.linear /= timeToTarget
-                  # Test for too fast acceleratio
-      if np.linalg.norm(result.linear) > maxAcceleration:
-            result.linear = normalize(result.linear)
-            result.linear *= maxAcceleration
-
-      # Change might be wrong so commenting this out
-      # if result.linear.length() > maxAcceleration:
-      #      result.linear = normalize(result.linear)
-      #      result.linear *= maxAcceleration
-
-      # Output steering
-      #result.angular = 0
-      return result
-"""
-
-def getSteeringContinue(Character, Target):
-      #r code
-      #result < - list(linear=mover$linear, angular=mover$angular)
-      #return(result)
-      result = SteeringOutput
-      result.linear = Character.linear
-      result.angular = Character.orientation ### This may be angular acceleration, but for now we'll say orientation
-      
-      return result
 
 def testSteering(moveType):
       char1 = Character()
@@ -288,9 +230,5 @@ def main():
                               output = getSteeringArrive(character, character.target)
                   
                   movementUpdate(steering=output, time=0.5, character=character)
-            
-            
-            
-
       
 main()
