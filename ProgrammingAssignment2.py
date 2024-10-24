@@ -23,17 +23,39 @@ class Path(object):
             self.y = np.array([])
             self.params = np.array([])
             self.distance = np.array([])
+            self.total_distance = 0
             self.segments = 0
       def pathAssemble(self,ID, X,Y):
             
             for item in X:
                   self.x.append(item) # check if this works for numpy arrays
+                  
             for item in Y:
                   self.y.append(item)
+
+            self.segments = len(X) - 1 # Generates total num of segments
             
-            
+            # Create distance for each lines segment and store it in segments array
+            for i in range(self.segments - 1):
+                  # x_1, x_2, y_1, y_2 for distance formula
+                  a = (self.x[i], self.x[i + 1])
+                  b = (self.y[i], self.y[i + 1])
+                  self.distance.append(distanceBetweenPoints(a, b))
+                  
+            for distance in self.distance:
+                  self.total_distance += distance
+
+            for i in range(self.segments - 1):
+                  self.params.append(self.distance[i]/self.total_distance)
+
 
       def getParam(self, position):
+            # position is a nd array like [x,y]
+            # a is passed in as 
+            for vertex in range(self.segments): # + 1 because we have 1 more vertex than segments
+                  segment_vertex1 = np.array([self.x[vertex], self.y[vertex]])
+                  segment_vertex2 = np.array([self.x[vertex+1], self.y[vertex]+1])
+                  np.linalg.norm(segment_vertex1,segment_vertex2)
             pass
 
       def getPosition(self,param):
@@ -89,10 +111,21 @@ def normalize(vector):
       return vector / norm
 
 def distanceBetweenPoints(a, b):
-      math.sqrt(a)
-      pass
+      return math.sqrt((a[1] - a[0])^2 + (b[1] - b[0])^2)
+      
 
 def closestPointSegment(q, a, b):
+      # Makes sure all these operations work with numpy arrays
+      caseVal = ((q - a)*(b - a)) / (b - a) * (b - a)
+
+      if caseVal <= 0:
+            return a
+      elif caseVal >= 1:
+            return b
+      else:
+            return a + caseVal(b - a)
+
+
       pass
 
 def getSteeringSeek(Character, Target):
