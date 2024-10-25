@@ -236,15 +236,17 @@ def main():
 
 
       # Initialize Character 2 FOLLOW
-      characters[0].id = 2701
-      characters[0].steer = 1
-      np.put(characters[0].position,[0,1],[20.0, 95])
-      np.put(characters[0].velocity,[0,1],[0,0])
-      characters[0].max_velocity = 4
-      characters[0].max_acceleration = 2
-      characters[0].path_to_follow = 1
-      characters[0].path_offset = 0.04
-
+      characters[1].id = 2701
+      characters[1].steer = 1
+      np.put(characters[1].position,[0,1],[20.0, 95])
+      np.put(characters[1].velocity,[0,1],[0,0])
+      characters[1].max_velocity = 4
+      characters[1].max_acceleration = 2
+      characters[1].path_to_follow = 1
+      characters[1].path_offset = 0.04
+      
+      X = (0,-20,20,-40,40,-60,60,0)
+      Y = (90,65,40,15,-10,-35,-60,-85)
 
       time_step_length = 50
       for time_step in range(time_step_length):
