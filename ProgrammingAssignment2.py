@@ -52,14 +52,50 @@ class Path(object):
       def getParam(self, position):
             # position is a nd array like [x,y]
             # a is passed in as 
+
+            # creates an array of arrays, may need to be changed later?
+            points = np.array([])
+            distances = np.array([])
+            
+            # Find lower vertex and upper for all vertexes, then find closest points to our current position
             for vertex in range(self.segments): # + 1 because we have 1 more vertex than segments
                   segment_vertex1 = np.array([self.x[vertex], self.y[vertex]])
                   segment_vertex2 = np.array([self.x[vertex+1], self.y[vertex]+1])
-                  np.linalg.norm(segment_vertex1,segment_vertex2)
-            pass
+                  potential_closest_point = closestPointSegment(position,segment_vertex1,segment_vertex2)
+                  points.append(potential_closest_point)
+                  distances.append(np.linalg.norm(position - potential_closest_point))
+                  #np.linalg.norm(segment_vertex1,segment_vertex2)
+            
+            closest_distance = min(distances)
+            # This should return an array with 1 value I think, and the index of the closest point
+            closest_point_index = np.where(distances == closest_distance)
+            closest_point = points[closest_point_index]
+            current_segment = closest_point_index
+
+            # Calculate path parameter of closest point
+            # Check if this is a correct array declaration later
+            first_vertex = np.array([self.x[current_segment], self.y[current_segment]])
+            second_vertex = np.array([self.x[current_segment+1], self.y[current_segment+1]])
+            first_vertex_param = self.params[current_segment]
+            second_vertex_param = self.params[current_segment+1]
+            t = np.linalg.norm(closest_point - first_vertex) / np.linalg.norm(second_vertex - first_vertex)
+            closest_point_param = first_vertex_param + (t * (second_vertex_param - first_vertex_param))
+            return closest_point_param
+
+
+            # Create a vector between each point and our current position, then normalize that
+            # Store the distances in an array, then find the smallest distance. This corresponds to the closest point
 
       def getPosition(self,param):
-            pass
+            index = np.where(self.params == param)
+            first_vertex = np.array([self.x[index], self.y[index]])
+            second_vertex = np.array([self.x[index+1], self.y[index+1]])
+            #for index in range (self):
+            #      first_vert = np.array([self.x[index]],[self.y[index]])
+            #      sec_vert = np.array([self.x[index+1]],[self.y[index+1]])
+            t = (param - self.params[index]) / (self.params[index+1]-self.params[index])
+            position = first_vertex + (t *(second_vertex-first_vertex))
+            return position
 
 class SteeringOutput(object):
       def _init_(self):
@@ -116,15 +152,16 @@ def distanceBetweenPoints(a, b):
 
 def closestPointSegment(q, a, b):
       # Makes sure all these operations work with numpy arrays
-      caseVal = ((q - a)*(b - a)) / (b - a) * (b - a)
-
-      if caseVal <= 0:
+      t = (np.dot((q - a),(b - a))) / np.dot((b - a) , (b - a))
+      return (a + (t*(b-a)))
+      """
+      if t <= 0:
             return a
-      elif caseVal >= 1:
+      elif t >= 1:
             return b
       else:
-            return a + caseVal(b - a)
-
+            return a + t(b - a)
+      """
 
       pass
 
@@ -196,9 +233,7 @@ def main():
       for i in range(numOfCharacters):
             characters.append(Character())
 
-      # Initialize Character 1 CONTINUE
-      characters[0].id = 2601
-      characters[0].steer = 1
+
 
       # Initialize Character 2 FOLLOW
       characters[0].id = 2701
@@ -216,17 +251,9 @@ def main():
             logRecord(characters, time_step_length)
             for character in characters:
                   output = SteeringOutput
-                  
-                  match character.steer:
-                        case MoveType.Continue.value:
-                              output = getSteeringContinue(character, character.target)
-                        case MoveType.Seek.value:
-                              output = getSteeringSeek(character, character.target)
-                        case MoveType.Flee.value:
-                              output = getSteeringFlee(character, character.target)
-                        case MoveType.Arrive.value:
-                              output = getSteeringArrive(character, character.target)
-                  
+
+                  output = getSteeringSeek(character, character.target)
+      
                   movementUpdate(steering=output, time=0.5, character=character)
       
 main()
