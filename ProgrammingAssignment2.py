@@ -18,35 +18,35 @@ targetRadius = 5.0 # arrival radius
 timeToTarget = 0.1 
 
 class Path(object):
-      def _init_(self):
+      def __init__(self):
             self.x = np.array([])
             self.y = np.array([])
             self.params = np.array([])
             self.distance = np.array([])
             self.total_distance = 0
             self.segments = 0
-      def pathAssemble(self,ID, X,Y):
-            
+
+      def pathAssemble(self,ID, X,Y): 
             for item in X:
-                  self.x.append(item) # check if this works for numpy arrays
+                  self.x = np.append(self.x, item) # check if this works for numpy arrays
                   
             for item in Y:
-                  self.y.append(item)
+                  self.y = np.append(self.y,item)
 
             self.segments = len(X) - 1 # Generates total num of segments
             
             # Create distance for each lines segment and store it in segments array
             for i in range(self.segments - 1):
                   # x_1, x_2, y_1, y_2 for distance formula
-                  a = (self.x[i], self.x[i + 1])
-                  b = (self.y[i], self.y[i + 1])
-                  self.distance.append(distanceBetweenPoints(a, b))
+                  a = np.array([self.x[i], self.x[i + 1]])
+                  b = np.array([self.y[i], self.y[i + 1]])
+                  self.distance = np.append(self.distance,distanceBetweenPoints(a, b))
                   
             for distance in self.distance:
                   self.total_distance += distance
 
             for i in range(self.segments - 1):
-                  self.params.append(self.distance[i]/self.total_distance)
+                  self.params = np.append(self.params,self.distance[i]/self.total_distance)
 
 
       def getParam(self, position):
@@ -62,20 +62,21 @@ class Path(object):
                   segment_vertex1 = np.array([self.x[vertex], self.y[vertex]])
                   segment_vertex2 = np.array([self.x[vertex+1], self.y[vertex]+1])
                   potential_closest_point = closestPointSegment(position,segment_vertex1,segment_vertex2)
-                  points.append(potential_closest_point)
-                  distances.append(np.linalg.norm(position - potential_closest_point))
+                  points = np.append(points,potential_closest_point)
+                  distances = np.append(distances,np.linalg.norm(position - potential_closest_point))
                   #np.linalg.norm(segment_vertex1,segment_vertex2)
             
             closest_distance = min(distances)
             # This should return an array with 1 value I think, and the index of the closest point
-            closest_point_index = np.where(distances == closest_distance)
+            closest_point_index = np.where(distances == closest_distance)[0]
             closest_point = points[closest_point_index]
             current_segment = closest_point_index
 
+            next_segment = current_segment + 1
             # Calculate path parameter of closest point
             # Check if this is a correct array declaration later
             first_vertex = np.array([self.x[current_segment], self.y[current_segment]])
-            second_vertex = np.array([self.x[current_segment+1], self.y[current_segment+1]])
+            second_vertex = np.array([self.x[next_segment], self.y[next_segment]])
             first_vertex_param = self.params[current_segment]
             second_vertex_param = self.params[current_segment+1]
             t = np.linalg.norm(closest_point - first_vertex) / np.linalg.norm(second_vertex - first_vertex)
@@ -87,7 +88,8 @@ class Path(object):
             # Store the distances in an array, then find the smallest distance. This corresponds to the closest point
 
       def getPosition(self,param):
-            index = np.where(self.params == param)
+            index_arr = np.where(self.params == param) #[0]
+            index = index_arr[0]
             first_vertex = np.array([self.x[index], self.y[index]])
             second_vertex = np.array([self.x[index+1], self.y[index+1]])
             #for index in range (self):
@@ -121,7 +123,7 @@ class Character(object):
             self.time_to_target = 0.0
             self.colcollide = False
             self.path_to_follow = 0
-            self.pat_offset = 0.0
+            self.path_offset = 0.0
 
 def logRecord(characters, time_step):
       path = "data.txt"
@@ -147,7 +149,8 @@ def normalize(vector):
       return vector / norm
 
 def distanceBetweenPoints(a, b):
-      return math.sqrt((a[1] - a[0])^2 + (b[1] - b[0])^2)
+      return np.linalg.norm(b - a) # mebbe 
+      #return math.sqrt((a[1] - a[0])^2 + (b[1] - b[0])^2)
       
 
 def closestPointSegment(q, a, b):
@@ -169,7 +172,7 @@ def getSteeringSeek(Character, Target):
       # Create output structure
       result = SteeringOutput()
       # Get the direction to the target
-      result.linear = Target.position - Character.position
+      result.linear = Target - Character.position
       # Accelerate at maximum rate
       result.linear = normalize(result.linear)
       result.linear *= Character.max_acceleration
@@ -233,8 +236,6 @@ def main():
       for i in range(numOfCharacters):
             characters.append(Character())
 
-
-
       # Initialize Character 2 FOLLOW
       characters[1].id = 2701
       characters[1].steer = 1
@@ -248,13 +249,19 @@ def main():
       X = (0,-20,20,-40,40,-60,60,0)
       Y = (90,65,40,15,-10,-35,-60,-85)
 
+      path = Path()
+      path.pathAssemble(characters[1].id, X,Y)
+
       time_step_length = 50
       for time_step in range(time_step_length):
             logRecord(characters, time_step_length)
             for character in characters:
                   output = SteeringOutput
+                  current_param = path.getParam(character.position)
 
-                  output = getSteeringSeek(character, character.target)
+                  target_param = current_param + character.path_offset
+                  target_position = path.getPosition(target_param)
+                  output = getSteeringSeek(character, target_position)
       
                   movementUpdate(steering=output, time=0.5, character=character)
       

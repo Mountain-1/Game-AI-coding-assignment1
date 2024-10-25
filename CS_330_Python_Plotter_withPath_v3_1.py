@@ -16,7 +16,7 @@ import csv
 import math
 
 # Change this to data file name
-filename = "CS330 Assignment 2 output.txt"
+filename = "data.txt" #"CS330 Assignment 2 output.txt"
 
 # Create Path Following Path 
 path_follow = True
