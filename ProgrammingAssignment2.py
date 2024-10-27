@@ -63,18 +63,24 @@ class Path(object):
             # creates an array of arrays, may need to be changed later?
             points = np.array([])
             distances = np.array([])
+            points_list = []
             
             # Find lower vertex and upper for all vertexes, then find closest points to our current position
             for vertex in range(self.segments): # + 1 because we have 1 more vertex than segments
                   segment_vertex1 = np.array([self.x[vertex], self.y[vertex]])
                   segment_vertex2 = np.array([self.x[vertex+1], self.y[vertex+1]])
                   potential_closest_point = closestPointSegment(position,segment_vertex1,segment_vertex2)
-                  points = np.append(points,np.array([potential_closest_point]))
+                  
+                  points_list.append(potential_closest_point)
+                  
+                  points = np.append(points,np.array(potential_closest_point))
                   distances = np.append(distances,np.linalg.norm(position - potential_closest_point))
                   #np.linalg.norm(segment_vertex1,segment_vertex2)
 
             closest_distance = min(distances)
+            points = np.array(points_list,dtype=object)
             # This should return an array with 1 value I think, and the index of the closest point
+            
             closest_point_index = np.where(distances == closest_distance)[0]
             closest_point = points[closest_point_index]
             current_segment = closest_point_index
@@ -92,10 +98,10 @@ class Path(object):
 
             # Clarifying??
             segment_vector = second_vertex - first_vertex
-            point_vector = closest_point - first_vertex
+            point_vector = closest_point[0] - first_vertex
 
-            t = np.linalg.norm(point_vector, segment_vector) / np.linalg.norm(segment_vector, segment_vector)
-            #t = np.dot(point_vector, segment_vector) / np.dot(segment_vector, segment_vector)
+            #t = np.linalg.norm(point_vector, segment_vector) / np.linalg.norm(segment_vector, segment_vector)
+            t = np.dot(point_vector, segment_vector) / np.dot(segment_vector, segment_vector)
             closest_point_param = first_vertex_param + (t * (second_vertex_param - first_vertex_param))
             return closest_point_param
 
