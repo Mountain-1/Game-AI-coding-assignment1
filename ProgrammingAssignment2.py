@@ -69,10 +69,10 @@ class Path(object):
                   segment_vertex1 = np.array([self.x[vertex], self.y[vertex]])
                   segment_vertex2 = np.array([self.x[vertex+1], self.y[vertex+1]])
                   potential_closest_point = closestPointSegment(position,segment_vertex1,segment_vertex2)
-                  points = np.append(points,potential_closest_point)
+                  points = np.append(points,np.array([potential_closest_point]))
                   distances = np.append(distances,np.linalg.norm(position - potential_closest_point))
                   #np.linalg.norm(segment_vertex1,segment_vertex2)
-            
+
             closest_distance = min(distances)
             # This should return an array with 1 value I think, and the index of the closest point
             closest_point_index = np.where(distances == closest_distance)[0]
@@ -82,11 +82,20 @@ class Path(object):
             next_segment = current_segment + 1
             # Calculate path parameter of closest point
             # Check if this is a correct array declaration later
-            first_vertex = np.array([self.x[current_segment], self.y[current_segment]])
-            second_vertex = np.array([self.x[next_segment], self.y[next_segment]])
+            first_vertex = np.array([])
+            second_vertex = np.array([])
+            first_vertex = np.append(first_vertex,[self.x[current_segment], self.y[current_segment]]) # removing []
+            second_vertex = np.append(second_vertex,[self.x[next_segment], self.y[next_segment]]) # removing []
+            #second_vertex = np.array([self.x[next_segment], self.y[next_segment]])
             first_vertex_param = self.params[current_segment]
             second_vertex_param = self.params[current_segment+1]
-            t = np.linalg.norm(closest_point - first_vertex) / np.linalg.norm(second_vertex - first_vertex)
+
+            # Clarifying??
+            segment_vector = second_vertex - first_vertex
+            point_vector = closest_point - first_vertex
+
+            t = np.linalg.norm(point_vector, segment_vector) / np.linalg.norm(segment_vector, segment_vector)
+            t = np.dot(point_vector, segment_vector) / np.dot(segment_vector, segment_vector)
             closest_point_param = first_vertex_param + (t * (second_vertex_param - first_vertex_param))
             return closest_point_param
 
@@ -135,7 +144,7 @@ class Character(object):
             self.time_to_target = 0.0
             self.colcollide = False
             self.path_to_follow = 0
-            self.path_offset = 0.0
+            self.path_offset = 0.04
 
 def logRecord(character, time_step):
       path = "data.txt"
