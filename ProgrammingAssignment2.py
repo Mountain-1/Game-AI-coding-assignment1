@@ -95,7 +95,7 @@ class Path(object):
             point_vector = closest_point - first_vertex
 
             t = np.linalg.norm(point_vector, segment_vector) / np.linalg.norm(segment_vector, segment_vector)
-            t = np.dot(point_vector, segment_vector) / np.dot(segment_vector, segment_vector)
+            #t = np.dot(point_vector, segment_vector) / np.dot(segment_vector, segment_vector)
             closest_point_param = first_vertex_param + (t * (second_vertex_param - first_vertex_param))
             return closest_point_param
 
