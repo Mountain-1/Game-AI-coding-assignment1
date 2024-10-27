@@ -36,18 +36,25 @@ class Path(object):
             self.segments = len(X) - 1 # Generates total num of segments
             
             # Create distance for each lines segment and store it in segments array
+            """
             for i in range(self.segments - 1):
                   # x_1, x_2, y_1, y_2 for distance formula
                   a = np.array([self.x[i], self.x[i + 1]])
                   b = np.array([self.y[i], self.y[i + 1]])
                   self.distance = np.append(self.distance,distanceBetweenPoints(a, b))
-                  
-            for distance in self.distance:
-                  self.total_distance += distance
+            """ 
+            self.distance = np.append(self.distance, 0.00)
+            for i in range(self.segments): #+ 1
+                  a = np.array([self.x[i], self.x[i + 1]])
+                  b = np.array([self.y[i], self.y[i + 1]])
+                  distance_covered = self.distance[-1] + distanceBetweenPoints(a, b) #
+                  self.distance = np.append(self.distance, distance_covered)
+            #for distance in self.distance:
+            #      self.total_distance += distance
+            self.total_distance += self.distance[-1] # Final distance = total?
 
-            for i in range(self.segments - 1):
+            for i in range(self.segments + 1): # Old vers: - 1
                   self.params = np.append(self.params,self.distance[i]/self.total_distance)
-
 
       def getParam(self, position):
             # position is a nd array like [x,y]
@@ -88,7 +95,12 @@ class Path(object):
             # Store the distances in an array, then find the smallest distance. This corresponds to the closest point
 
       def getPosition(self,param):
-            index_arr = np.where(self.params == param) #[0]
+            index_arr = np.argwhere(self.params < param)[-1]
+            
+            
+            print(index_arr)
+            #index_arr = np.where(self.params == param) # In this guy we need to find the index of the vertex param directly below
+                                                       # param in value
             index = index_arr[0]
             first_vertex = np.array([self.x[index], self.y[index]])
             second_vertex = np.array([self.x[index+1], self.y[index+1]])
@@ -125,19 +137,19 @@ class Character(object):
             self.path_to_follow = 0
             self.path_offset = 0.0
 
-def logRecord(characters, time_step):
+def logRecord(character, time_step):
       path = "data.txt"
       f = open(path,"a")
-      for character in characters:
-            f.write(str(time_step) + ',')
-            f.write(str(character.id) + ',')
-            f.write(str(character.position[0]) + ',' + str(character.position[1]) + ',') # pos x & z
-            f.write(str(character.velocity[0]) + ',' + str(character.velocity[1]) + ',') # vel x & z
-            f.write(str(character.linear[0]) + ',' + str(character.linear[1]) + ',') # linear x & z
-            f.write(str(character.orientation)+ ',')
-            f.write(str(character.steer) + ',')
-            f.write(str(character.colcollide))
-            f.write('\n')
+      
+      f.write(str(time_step) + ',')
+      f.write(str(character.id) + ',')
+      f.write(str(character.position[0]) + ',' + str(character.position[1]) + ',') # pos x & z
+      f.write(str(character.velocity[0]) + ',' + str(character.velocity[1]) + ',') # vel x & z
+      f.write(str(character.linear[0]) + ',' + str(character.linear[1]) + ',') # linear x & z
+      f.write(str(character.orientation)+ ',')
+      f.write(str(character.steer) + ',')
+      f.write(str(character.colcollide))
+      f.write('\n')
 
 
 def length(vector):
@@ -156,17 +168,14 @@ def distanceBetweenPoints(a, b):
 def closestPointSegment(q, a, b):
       # Makes sure all these operations work with numpy arrays
       t = (np.dot((q - a),(b - a))) / np.dot((b - a) , (b - a))
-      return (a + (t*(b-a)))
-      """
+      #return (a + (t*(b-a)))
+      
       if t <= 0:
             return a
       elif t >= 1:
             return b
       else:
-            return a + t(b - a)
-      """
-
-      pass
+            return a + t*(b - a)
 
 def getSteeringSeek(Character, Target):
       # Create output structure
@@ -231,31 +240,32 @@ def movementUpdate(steering: SteeringOutput, time: float, character: Character )
       return
 
 def main():
-      numOfCharacters = 2
+      numOfCharacters = 1
       characters = []
       for i in range(numOfCharacters):
             characters.append(Character())
 
       # Initialize Character 2 FOLLOW
-      characters[1].id = 2701
-      characters[1].steer = 1
-      np.put(characters[1].position,[0,1],[20.0, 95])
-      np.put(characters[1].velocity,[0,1],[0,0])
-      characters[1].max_velocity = 4
-      characters[1].max_acceleration = 2
-      characters[1].path_to_follow = 1
-      characters[1].path_offset = 0.04
+      characters[0].id = 2701
+      characters[0].steer = 1
+      np.put(characters[0].position,[0,1],[20.0, 95])
+      np.put(characters[0].velocity,[0,1],[0,0])
+      characters[0].max_velocity = 4
+      characters[0].max_acceleration = 2
+      characters[0].path_to_follow = 1
+      characters[0].path_offset = 0.04
       
       X = (0,-20,20,-40,40,-60,60,0)
       Y = (90,65,40,15,-10,-35,-60,-85)
 
       path = Path()
-      path.pathAssemble(characters[1].id, X,Y)
+      path.pathAssemble(characters[0].id, X,Y)
 
-      time_step_length = 50
+      time_step_length = 125
       for time_step in range(time_step_length):
-            logRecord(characters, time_step_length)
+            
             for character in characters:
+                  logRecord(character, time_step_length)
                   output = SteeringOutput
                   current_param = path.getParam(character.position)
 
