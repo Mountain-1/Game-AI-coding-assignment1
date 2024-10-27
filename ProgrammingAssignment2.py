@@ -2,6 +2,9 @@ import numpy as np
 import math
 from enum import Enum
 
+# Ethan Pascuales
+# Matthew Byrnes
+
 class MoveType(Enum):
       Continue = 0
       Seek = 6
@@ -100,8 +103,10 @@ class Path(object):
             segment_vector = second_vertex - first_vertex
             point_vector = closest_point[0] - first_vertex
 
-            #t = np.linalg.norm(point_vector, segment_vector) / np.linalg.norm(segment_vector, segment_vector)
-            t = np.dot(point_vector, segment_vector) / np.dot(segment_vector, segment_vector)
+            
+            t = np.linalg.norm(closest_point[0] - first_vertex) / np.linalg.norm(second_vertex - first_vertex)
+            #t = np.linalg.norm(point_vector - segment_vector) / np.linalg.norm(segment_vector - segment_vector)
+            #t = np.dot(point_vector, segment_vector) / np.dot(segment_vector, segment_vector)
             closest_point_param = first_vertex_param + (t * (second_vertex_param - first_vertex_param))
             return closest_point_param
 
@@ -276,7 +281,7 @@ def main():
       path = Path()
       path.pathAssemble(characters[0].id, X,Y)
 
-      time_step_length = 125
+      time_step_length = 250
       for time_step in range(time_step_length):
             
             for character in characters:
