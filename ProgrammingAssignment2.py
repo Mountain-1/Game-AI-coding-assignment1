@@ -67,7 +67,7 @@ class Path(object):
             # Find lower vertex and upper for all vertexes, then find closest points to our current position
             for vertex in range(self.segments): # + 1 because we have 1 more vertex than segments
                   segment_vertex1 = np.array([self.x[vertex], self.y[vertex]])
-                  segment_vertex2 = np.array([self.x[vertex+1], self.y[vertex]+1])
+                  segment_vertex2 = np.array([self.x[vertex+1], self.y[vertex+1]])
                   potential_closest_point = closestPointSegment(position,segment_vertex1,segment_vertex2)
                   points = np.append(points,potential_closest_point)
                   distances = np.append(distances,np.linalg.norm(position - potential_closest_point))
